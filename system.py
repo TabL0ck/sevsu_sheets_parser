@@ -95,6 +95,7 @@ def create_file(path: str, filename: str, extension: str) -> str:
 
     @return Абсолютный путь к файлу
     """
+    make_directory(f'{PATH_TO_PROJ}/{path}')
     full_path = f'{PATH_TO_PROJ}/{path}/{filename}.{extension}'
     if os.path.exists(full_path):
         return full_path

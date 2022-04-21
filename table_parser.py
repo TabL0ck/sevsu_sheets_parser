@@ -495,7 +495,7 @@ def main():
         test = test.return_info("SELECT * FROM pair WHERE group_name = 'ПСДс-21-2' AND week_number = '2022-04-25'")
         for item in test:
             print(item)
-
+#
 
 
 
