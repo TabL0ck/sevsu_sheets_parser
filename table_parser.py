@@ -477,14 +477,24 @@ def main():
         # df.to_excel('test3.xlsx', sheet_name='test', header=True, index=False)
         indexes = test_get_useful_columns(df)
         # print(indexes)
-        test = db.SQL()
-        test.create_db()
+        path = db.SQL.create_db()
         for i in df.index[2:]:
             for j in indexes:
                 a = get_information_for_database_from_table(df, i, j)
-                request = test.insert_datas_to_db('pair', day=a[0], lesson_number=a[1], week_number=a[2], group_name=a[3], teacher_name=a[4], lesson=a[5], lesson_type=a[6], auditorium=a[7])
+                test = db.SQL(path, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7])
+                request = test.insert_datas_to_db('pair',
+                day=test.day,
+                lesson_number=test.lesson_number,
+                week_number=test.week_number,
+                group_name=test.group_name,
+                teacher_name=test.teacher_name,
+                lesson=test.lesson,
+                lesson_type=test.lesson_type,
+                auditorium=test.auditorium)
                 test.execute_requests(request)
-        print(test.return_info(test.return_all_from_db('pair')))
+        test = test.return_info("SELECT * FROM pair WHERE group_name = 'ПСДс-21-2' AND week_number = '2022-04-25'")
+        for item in test:
+            print(item)
 
 
 

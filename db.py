@@ -35,6 +35,8 @@
 from asyncio.windows_events import NULL
 from xmlrpc.client import Boolean
 
+from requests import request
+
 import system
 import sqlite3
 
@@ -45,7 +47,9 @@ class SQL:
     Класс работы с базой данныйх
     """
 
-    def __init__(self):
+    def __init__(self, path, day=NULL, lesson_number=NULL, week_number=NULL,
+     group_name=NULL, teacher_name=NULL, lesson=NULL, lesson_type=NULL,
+      auditorium=NULL):
         """! Constructor
         
         Конструктор класса
@@ -53,23 +57,23 @@ class SQL:
         @param self Объект класса(указывать не нужно)
         """
         ## День недели (максимум 16 символов)
-        self.day = NULL
+        self.day = day
         ## Время пары (максимум 8 символов)
-        self.lesson_number = NULL
+        self.lesson_number = lesson_number
         ## Название пары (максимум 128 символов)
-        self.lesson = NULL
+        self.lesson = lesson
         ## Тип пары (максимум 4 символа)
-        self.lesson_type = NULL
+        self.lesson_type = lesson_type
         ## Аудитория (максимум 8 символов)
-        self.auditorium = NULL
+        self.auditorium = auditorium
         ## Номер недели (максимум 32 символов)
-        self.week_number = NULL
+        self.week_number = week_number
         ## Название группы (максимум 16 символов)
-        self.group_name = NULL
+        self.group_name = group_name
         ## Имя преподавателя (максимум 32 символов)
-        self.teacher_name = NULL
-
-        self.path = NULL
+        self.teacher_name = teacher_name
+        ## Путь к файлу базы данных
+        self.path = path
 
     def create_table_request(name: str, **kwargs: dict) -> str:
         """! Create table request
@@ -94,15 +98,14 @@ class SQL:
 
         @params name Название таблицы
         @params **kwargs Словарь типа {Название поля} : {Значение}
-
         @return SQL запрос для добавления записей в БД
         """
         request = f'INSERT INTO {name} ('
+        temp = ''
         for param, value in kwargs.items():
             request = request + f'{str(param)}, '
-        request = request[:-2] + ')\nVALUES ('
-        for param, value in kwargs.items():
-            request = request + f"'{value}', "
+            temp = temp + f"'{value}', "
+        request = request[:-2] + ')\nVALUES (' + temp
         request = request[:-2] + ');'
         return request
 
@@ -135,7 +138,9 @@ class SQL:
         """
         conn = sqlite3.connect(db_file)
         cur = conn.cursor()
-        cur.execute(SQL.create_table_request('pair', day='VARCHAR(16)', lesson_number='INT', week_number='VARCHAR(32)', group_name='VARCHAR(16)', teacher_name='VARCHAR(64)', lesson='VARCHAR(128)', lesson_type='VARCHAR(4)', auditorium='VARCHAR(8)'))
+        cur.execute(SQL.create_table_request('pair', day='VARCHAR(16)', lesson_number='INT',
+         week_number='VARCHAR(32)', group_name='VARCHAR(16)', teacher_name='VARCHAR(64)',
+          lesson='VARCHAR(128)', lesson_type='VARCHAR(4)', auditorium='VARCHAR(8)'))
         conn.commit()
 
 
@@ -163,22 +168,19 @@ class SQL:
         conn = sqlite3.connect(self.path)
         cur = conn.cursor()
         cur.execute(request)
-        return type(cur.fetchall())
+        return cur.fetchall()
 
-    def create_db(self) -> Boolean:
+    @staticmethod
+    def create_db() -> str:
         """! Create whole database with all needed tables
         
         Создает базу данных со всеми нужными таблицами
 
-        @return Возвращает True если все успешно созданно и 
-        False если есть ошибки при создании
+        @return Возвращает путь к файлу
         """
-        try:
-            self.path = SQL.__craete_db_file()
-            SQL.__create_table(self.path)
-            return True
-        except:
-            return False
+        path = SQL.__craete_db_file()
+        SQL.__create_table(path)
+        return path
 
 
 
@@ -189,12 +191,12 @@ def main():
 
     Эта функция используется для отладки написанного кода
     """
-
-    SQL.create_db()
-    a = SQL.insert_datas_to_db('pair', day='1', lesson_number=2, week_number='3', group_name='4', teacher_name='5', lesson='6', lesson_type='7', auditorium='8')
-    SQL.execute_requests(a)
-    a = SQL.return_all_from_db('pair')
-    print(SQL.return_info(a))
+    test = SQL()
+    test.create_db()
+    a = test.insert_datas_to_db('pair', day='1', lesson_number=2, week_number='3', group_name='4', teacher_name='5', lesson='6', lesson_type='7', auditorium='8')
+    test.execute_requests(a)
+    a = test.return_all_from_db('pair')
+    print(test.return_info(a))
 
 if __name__ == "__main__":
     main()
